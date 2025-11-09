@@ -1,24 +1,39 @@
--- Blox Fruits Auto Farm - Fixed & Safe (2025)
--- فقط این کد رو اجرا کن، بقیه رو پاک کن!
-
+-- Blox Fruits Auto Farm + M1 SPAM - 2025 Fixed
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
 local StarterGui = game:GetService("StarterGui")
+local VirtualInputManager = game:GetService("VirtualInputManager")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local player = Players.LocalPlayer
 local char = player.Character or player.CharacterAdded:Wait()
-local hum = char:WaitForChild("Humanoid", 5)
-local root = char:WaitForChild("HumanoidRootPart", 5)
+local hum = char:WaitForChild("Humanoid", 10)
+local root = char:WaitForChild("HumanoidRootPart", 10)
 local backpack = player:WaitForChild("Backpack")
 
--- تنظیمات (اینجا نوع رو عوض کن!)
-local SELECTED_TYPE = "Melee"  -- <<< "Melee" / "Sword" / "Gun"
-local FARM_DISTANCE = 5
-local ATTACK_DELAY = 0.1
+-- تنظیمات
+local SELECTED_TYPE = "Melee"  -- "Melee" / "Sword" / "Gun"
+local FARM_DISTANCE = 4
+local M1_DELAY = 0.05  -- سرعت M1
 
--- تابع تجهیز سلاح
+-- تابع M1 اسپم (برای همه سلاح‌ها!)
+local function spamM1()
+    spawn(function()
+        while task.wait(M1_DELAY) do
+            -- روش ۱: VirtualInput (بهترین برای Melee)
+            VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, game, 1)
+            task.wait(0.01)
+            VirtualInputManager:SendMouseButtonEvent(0, 0, 0, false, game, 1)
+            
+            -- روش ۲: Tool Activate (برای Sword/Gun)
+            local tool = hum:FindFirstChildOfClass("Tool")
+            if tool then pcall(function() tool:Activate() end) end
+        end
+    end)
+end
+
+-- تجهیز سلاح
 local function equipTool()
-    if not backpack then return nil end
     for _, tool in pairs(backpack:GetChildren()) do
         if tool:IsA("Tool") then
             local name = tool.Name:lower()
@@ -30,7 +45,7 @@ local function equipTool()
             end
         end
     end
-    StarterGui:SetCore("SendNotification", {Title="خطا"; Text="سلاح "..SELECTED_TYPE.." پیدا نشد!"; Duration=4})
+    StarterGui:SetCore("SendNotification", {Title="❌"; Text="سلاح "..SELECTED_TYPE.." پیدا نشد!"; Duration=5})
     return nil
 end
 
@@ -39,15 +54,15 @@ local function findNPC()
     local enemiesFolder = Workspace:FindFirstChild("Enemies") or Workspace:FindFirstChild("Living")
     if not enemiesFolder then return nil end
 
-    local closest, minDist = nil, 100
+    local closest, minDist = nil, 50
     for _, npc in pairs(enemiesFolder:GetChildren()) do
-        if npc:FindFirstChild("Humanoid") and npc:FindFirstChild("HumanoidRootPart") then
-            if npc.Humanoid.Health > 0 then
-                local dist = (root.Position - npc.HumanoidRootPart.Position).Magnitude
-                if dist < minDist then
-                    minDist = dist
-                    closest = npc
-                end
+        local humanoid = npc:FindFirstChild("Humanoid")
+        local rootpart = npc:FindFirstChild("HumanoidRootPart") or npc:FindFirstChild("PrimaryPart")
+        if humanoid and rootpart and humanoid.Health > 0 then
+            local dist = (root.Position - rootpart.Position).Magnitude
+            if dist < minDist then
+                minDist = dist
+                closest = npc
             end
         end
     end
@@ -56,21 +71,27 @@ end
 
 -- شروع فارم
 local tool = equipTool()
-if tool and hum and root then
+if tool and hum.Health > 0 then
+    StarterGui:SetCore("SendNotification", {Title="✅"; Text=SELECTED_TYPE.." M1 Farm شروع شد!"; Duration=5})
+    
+    -- M1 اسپم شروع کن
+    spamM1()
+    
+    -- لوپ اصلی
     spawn(function()
-        while task.wait(ATTACK_DELAY) do
+        while task.wait(0.1) do
             if hum.Health <= 0 then break end
             local target = findNPC()
-            if target and target:FindFirstChild("HumanoidRootPart") then
-                root.CFrame = target.HumanoidRootPart.CFrame * CFrame.new(0, 0, -FARM_DISTANCE)
-                while target.Humanoid.Health > 0 and hum.Health > 0 do
-                    pcall(function() tool:Activate() end) -- جلوگیری از crash
-                    task.wait(ATTACK_DELAY)
+            if target then
+                local targetRoot = target:FindFirstChild("HumanoidRootPart") or target.PrimaryPart
+                if targetRoot then
+                    root.CFrame = targetRoot.CFrame * CFrame.new(0, 0, -FARM_DISTANCE)
                 end
+            else
+                task.wait(1)  -- NPC پیدا نشد، صبر کن
             end
         end
     end)
-    StarterGui:SetCore("SendNotification", {Title="فعال شد!"; Text=SELECTED_TYPE.." فارم شروع شد"; Duration=5})
 else
-    StarterGui:SetCore("SendNotification", {Title="خطا"; Text="کاراکتر یا سلاح لود نشد!"; Duration=5})
+    StarterGui:SetCore("SendNotification", {Title="❌"; Text="ابتدا سلاح بگیر و NPC نزدیک شو!"; Duration=5})
 end
