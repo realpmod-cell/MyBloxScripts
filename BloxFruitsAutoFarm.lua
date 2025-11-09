@@ -1,53 +1,36 @@
--- Blox Fruits COMBAT SPAM (M1 + Z X C) - PERFECT FIX
+-- ULTRA SPAM (Key Press + Click) - 100% WORKS
 local Players = game:GetService("Players")
 local StarterGui = game:GetService("StarterGui")
 local VirtualInputManager = game:GetService("VirtualInputManager")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local UserInputService = game:GetService("UserInputService")
 
 local player = Players.LocalPlayer
 local char = player.Character or player.CharacterAdded:Wait()
-local hum = char:WaitForChild("Humanoid")
-local root = char:WaitForChild("HumanoidRootPart")
 
--- God Mode
-hum.MaxHealth = math.huge
-hum.Health = math.huge
-
--- Remote اصلی Blox Fruits
-local remotes = ReplicatedStorage:WaitForChild("Remotes")
-local commF = remotes:WaitForChild("CommF_")
-
--- SPAM بی‌نهایت
+-- بی‌نهایت اسپم کلیدها
 spawn(function()
-    while task.wait(0.08) do
-        -- M1 کلیک (همیشه!)
-        pcall(function()
-            VirtualInputManager:SendMouseButtonEvent(0,0,0,true,game,1)
-            task.wait(0.005)
-            VirtualInputManager:SendMouseButtonEvent(0,0,0,false,game,1)
-        end)
+    while true do
+        -- M1
+        VirtualInputManager:SendMouseButtonEvent(0,0,0,true,game,1)
+        task.wait(0.01)
+        VirtualInputManager:SendMouseButtonEvent(0,0,0,false,game,1)
         
-        -- Z X C با Remote اصلی (Blox Fruits 2025)
-        pcall(function()
-            commF:FireServer("Buso")  -- Z (مشابه)
-        end)
-        task.wait(0.1)
+        -- Z
+        VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.Z, false, game)
+        task.wait(0.05)
+        VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.Z, false, game)
         
-        pcall(function()
-            commF:FireServer("KenHaki")  -- X (مشابه)
-        end)
-        task.wait(0.1)
+        -- X  
+        VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.X, false, game)
+        task.wait(0.05)
+        VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.X, false, game)
         
-        pcall(function()
-            local tool = char:FindFirstChildOfClass("Tool")
-            if tool then tool:Activate() end  -- C Skill
-        end)
+        -- C
+        VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.C, false, game)
+        task.wait(0.05)
+        VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.C, false, game)
+        
         task.wait(0.1)
     end
 end)
 
-StarterGui:SetCore("SendNotification", {
-    Title="🔥"; Text="COMBAT SPAM ON! M1+Z+X+C"; Duration=15
-})
-print("COMBAT SPAM ACTIVE - برو NPC بزن!")
+StarterGui:SetCore("SendNotification", {Title="💥"; Text="KEY SPAM ON! Z X C M1"; Duration=20})
