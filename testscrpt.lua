@@ -5,22 +5,18 @@ local Lighting = game:GetService("Lighting")
 local player = Players.LocalPlayer
 local placeId = 2753915549
 
--- مسیر دسکتاپ (NL)
-local DESKTOP_PATH = "C:\\Users\\" .. os.getenv("Dani") .. "\\Desktop\\MoonChecker.txt"
-
--- تابع ذخیره در فایل
-local function saveToFile(phase, jobId)
+-- تابع نمایش در Console Volcano
+local function logToConsole(phase, jobId)
     local text = "NL Server | " .. os.date("%Y-%m-%d %H:%M:%S") .. "\n"
     text = text .. "فاز ماه: " .. phase .. "\n"
     text = text .. "JobId: " .. jobId .. "\n"
     text = text .. "Join: roblox.com/games/" .. placeId .. "/?gameInstanceId=" .. jobId .. "\n"
-    text = text .. "----------------------------------------\n"
+    text = text .. "----------------------------------------"
     
-    -- اضافه کردن به فایل (append)
-    writefile(DESKTOP_PATH, readfile(DESKTOP_PATH or "") .. text)
+    print("\n" .. text .. "\n")  -- در Console Volcano
 end
 
--- تابع فاز ماه
+-- فاز ماه
 local function getPhase()
     local h = tonumber(Lighting.TimeOfDay:match("^(%d+)")) or 0
     local i = math.floor(h / 3) % 8 + 1
@@ -28,7 +24,7 @@ local function getPhase()
     return phases[i]
 end
 
--- تابع hop
+-- Hop
 local function hop()
     spawn(function()
         pcall(function()
@@ -48,20 +44,14 @@ end
 spawn(function()
     repeat wait(1) until player.Character and player.Character:FindFirstChild("HumanoidRootPart")
     
-    -- پاک کردن فایل قدیمی (اختیاری)
-    if isfile(DESKTOP_PATH) then delfile(DESKTOP_PATH) end
-    
-    -- عنوان فایل
-    writefile(DESKTOP_PATH, "Moon Checker NL | Volcano\nشروع: " .. os.date("%Y-%m-%d %H:%M:%S") .. "\n\n")
+    print("Moon Checker NL | Volcano شروع شد!")
+    print("هر 15 ثانیه در Console نمایش داده می‌شود.")
     
     while true do
         local phase = getPhase()
         local jobId = game.JobId
-        saveToFile(phase, jobId)
-        print("ذخیره شد: " .. phase .. " | " .. jobId)
+        logToConsole(phase, jobId)
         wait(15)
         hop()
     end
 end)
-
-print("Moon Checker NL فعال شد! فایل روی دسکتاپ: MoonChecker.txt")
