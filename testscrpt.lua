@@ -3,9 +3,9 @@ local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 
--- تنظیمات تلگرام
+-- تنظیمات تلگرام (ID درست!)
 local BOT_TOKEN = "8269110400:AAHpabkt1P7O_BEh1Ku0mMjDjOwy03LIGAs"
-local CHAT_ID = "@testbloxscript"  -- یا عددی: -100xxxxxxxxxx
+local CHAT_ID = "-1003421042506"  -- کانال "test"
 
 -- ساخت GUI
 local screenGui = Instance.new("ScreenGui")
@@ -25,7 +25,7 @@ corner.Parent = frame
 
 local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1, 0, 0, 40)
-title.Text = "🌙 تست تلگرام + لاگ"
+title.Text = "تست تلگرام + لاگ"
 title.TextColor3 = Color3.fromRGB(173, 216, 230)
 title.BackgroundTransparency = 1
 title.Font = Enum.Font.GothamBold
@@ -36,7 +36,7 @@ title.Parent = frame
 local scrolling = Instance.new("ScrollingFrame")
 scrolling.Size = UDim2.new(1, -20, 1, -100)
 scrolling.Position = UDim2.new(0, 10, 0, 50)
-scrolling.BackgroundColor3 = Color3.fromRGB(15, 15, 25)
+scrolluencias.BackgroundColor3 = Color3.fromRGB(15, 15, 25)
 scrolling.BorderSizePixel = 1
 scrolling.BorderColor3 = Color3.fromRGB(80, 80, 120)
 scrolling.ScrollBarThickness = 8
@@ -56,7 +56,7 @@ logText.Parent = scrolling
 
 -- تابع اضافه کردن لاگ
 local function addLog(text)
-    print(text)  -- Exploit Console
+    print(text)
     logText.Text = logText.Text .. text .. "\n"
     scrolling.CanvasSize = UDim2.new(0, 0, 0, logText.TextBounds.Y + 20)
     scrolling.CanvasPosition = Vector2.new(0, scrolling.CanvasSize.Y.Offset)
@@ -85,16 +85,17 @@ end
 
 -- دکمه: تست تلگرام
 createButton("تست تلگرام", Color3.fromRGB(0, 170, 255), function()
-    addLog("--- شروع تست تلگرام ---")
-    addLog("CHAT_ID: " .. CHAT_ID)
+    addLog("--- شروع تست ---")
+    addLog("کانال: test")
+    addLog("ID: " .. CHAT_ID)
     
     local data = {
         chat_id = CHAT_ID,
-        text = "تست از GUI!\nJobId: `" .. (game.JobId or "N/A") .. "`\nزمان: " .. os.date("%H:%M:%S"),
+        text = "تست موفق!\nJobId: `" .. (game.JobId or "N/A") .. "`\nزمان: " .. os.date("%H:%M:%S"),
         parse_mode = "Markdown"
     }
     
-    addLog("ارسال داده: " .. HttpService:JSONEncode(data))
+    addLog("ارسال: " .. HttpService:JSONEncode(data))
     
     local success, resp = pcall(function()
         return HttpService:PostAsync(
@@ -105,12 +106,12 @@ createButton("تست تلگرام", Color3.fromRGB(0, 170, 255), function()
     end)
     
     if success then
-        addLog("پاسخ خام: " .. resp)
+        addLog("پاسخ: " .. resp)
         local ok, decoded = pcall(HttpService.JSONDecode, HttpService, resp)
         if ok and decoded.ok then
-            addLog("موفقیت! پیام ارسال شد.")
+            addLog("پیام ارسال شد!")
         else
-            addLog("خطای تلگرام: " .. (decoded and decoded.description or "N/A"))
+            addLog("خطا: " .. (decoded and decoded.description or "N/A"))
         end
     else
         addLog("خطای HTTP: " .. tostring(resp))
@@ -120,7 +121,7 @@ end)
 -- دکمه: کپی لاگ
 createButton("کپی لاگ", Color3.fromRGB(0, 200, 100), function()
     setclipboard(logText.Text)
-    addLog("لاگ کپی شد! (Clipboard)")
+    addLog("لاگ کپی شد!")
 end)
 
 -- دکمه: پاک کردن
@@ -135,5 +136,6 @@ createButton("بستن", Color3.fromRGB(220, 50, 50), function()
 end)
 
 -- شروع
-addLog("GUI لود شد. دکمه 'تست تلگرام' رو بزن.")
-addLog("اگه پیام نیومد، CHAT_ID رو عددی کن (از getUpdates).")
+addLog("GUI لود شد!")
+addLog("دکمه 'تست تلگرام' رو بزن.")
+addLog("کانال: test | ID: -1003421042506")
