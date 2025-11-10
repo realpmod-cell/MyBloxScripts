@@ -36,7 +36,7 @@ title.Parent = frame
 local scrolling = Instance.new("ScrollingFrame")
 scrolling.Size = UDim2.new(1, -20, 1, -100)
 scrolling.Position = UDim2.new(0, 10, 0, 50)
-scrolluencias.BackgroundColor3 = Color3.fromRGB(15, 15, 25)
+scrolling.BackgroundColor3 = Color3.fromRGB(15, 15, 25)
 scrolling.BorderSizePixel = 1
 scrolling.BorderColor3 = Color3.fromRGB(80, 80, 120)
 scrolling.ScrollBarThickness = 8
@@ -109,7 +109,7 @@ createButton("تست تلگرام", Color3.fromRGB(0, 170, 255), function()
         addLog("پاسخ: " .. resp)
         local ok, decoded = pcall(HttpService.JSONDecode, HttpService, resp)
         if ok and decoded.ok then
-            addLog("پیام ارسال شد!")
+            addLog("پیام ارسال شد! چک کن کانال test")
         else
             addLog("خطا: " .. (decoded and decoded.description or "N/A"))
         end
@@ -137,5 +137,5 @@ end)
 
 -- شروع
 addLog("GUI لود شد!")
-addLog("دکمه 'تست تلگرام' رو بزن.")
-addLog("کانال: test | ID: -1003421042506")
+addLog("ID درست: -1003421042506")
+addLog("دکمه 'تست تلگرام' رو بزن → پیام در کانال test میاد!")
