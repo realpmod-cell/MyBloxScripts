@@ -50,7 +50,7 @@ Instance.new("UICorner", testBtn).CornerRadius = UDim.new(0,8)
 
 testBtn.MouseButton1Click:Connect(function()
     log("--- شروع تست Volcano ---")
-    log("HTTP Enabled: " .. tostring(HttpService.HttpEnabled))
+    log("HttpEnabled چک نمی‌شه (باگ Volcano)")
     
     local data = {
         chat_id = CHAT_ID,
@@ -58,7 +58,7 @@ testBtn.MouseButton1Click:Connect(function()
         parse_mode = "Markdown"
     }
     
-    log("ارسال داده...")
+    log("در حال ارسال...")
     
     spawn(function()
         local success, result = pcall(function()
@@ -93,3 +93,4 @@ closeBtn.MouseButton1Click:Connect(function() gui:Destroy() end)
 
 log("GUI لود شد!")
 log("دکمه 'تست تلگرام' رو بزن!")
+log("HTTP در Volcano فعاله – چک HttpEnabled رو نادیده بگیر!")
