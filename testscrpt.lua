@@ -1,50 +1,48 @@
 local HttpService = game:GetService("HttpService")
 local TeleportService = game:GetService("TeleportService")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local Lighting = game:GetService("Lighting")
 local player = Players.LocalPlayer
 local placeId = 2753915549
 
--- تنظیمات تلگرام (Token آپدیت شد!)
+-- تنظیمات تلگرام
 local BOT_TOKEN = "8269110400:AAHpabkt1P7O_BEh1Ku0mMjDjOwy03LIGAs"
-local CHAT_ID = "@your_channel_username"  -- عوض کن با username کانالت (با @) یا chat ID عددی
+local CHAT_ID = "@testbloxscript"  -- عوض کن!
 
--- ارسال به تلگرام (هر فاز)
-local function sendToTelegram(phase, jobId, textureId)
-    local time = os.date("%Y-%m-%d %H:%M:%S")
-    local message = "🌙 **فاز ماه:** `" .. phase .. "`\n🆔 **JobId:** `" .. jobId .. "`\n🆔 **MoonTextureID:** `" .. (textureId or "N/A") .. "`\n⏰ **زمان:** " .. time .. "\n🔗 **Join:** roblox.com/games/" .. placeId .. "/?placeId=" .. placeId .. "&gameInstance=" .. jobId
+-- ارسال به تلگرام
+local function sendToTelegram(phase, jobId, timeStr)
+    local message = "🌙 **فاز ماه:** `" .. phase .. "`\n🆔 **JobId:** `" .. jobId .. "`\n⏰ **زمان:** " .. timeStr .. "\n🔗 **Join:** https://roblox.com/games/" .. placeId .. "/?gameInstanceId=" .. jobId
     local url = "https://api.telegram.org/bot" .. BOT_TOKEN .. "/sendMessage"
-    local data = {chat_id = CHAT_ID, text = message, parse_mode = "Markdown", disable_web_page_preview = true}
     pcall(function()
-        HttpService:PostAsync(url, HttpService:JSONEncode(data), Enum.HttpContentType.ApplicationJson)
+        HttpService:PostAsync(url, HttpService:JSONEncode({
+            chat_id = CHAT_ID,
+            text = message,
+            parse_mode = "Markdown",
+            disable_web_page_preview = true
+        }), Enum.HttpContentType.ApplicationJson)
     end)
-    print("ارسال شد: " .. phase .. " | JobId: " .. jobId)
+    print("ارسال شد: " .. phase)
 end
 
--- دریافت فاز ماه از Sky.MoonTextureID (اصلی)
+-- محاسبه فاز ماه از TimeOfDay
 local function getMoonPhase()
-    local sky = Lighting:FindFirstChildOfClass("Sky")
-    if sky and sky.MoonTextureID then
-        local id = tostring(sky.MoonTextureID)
-        local phase = "Unknown Phase (ID: " .. id .. ")"  -- همه IDها رو نشون می‌ده
-        
-        -- Map شناخته‌شده (از تست‌ها - آپدیت کن اگه ID جدید دیدی)
-        local moonMap = {
-            ["rbxassetid://11642078616"] = "🌕 Full Moon",
-            ["rbxassetid://11642076146"] = "🌑 New Moon",
-            ["rbxassetid://11642076919"] = "🌒 Waxing Crescent",
-            ["rbxassetid://11642077428"] = "🌓 First Quarter",
-            ["rbxassetid://11642078035"] = "🌔 Waxing Gibbous",
-            ["rbxassetid://11642079253"] = "🌖 Waning Gibbous",
-            ["rbxassetid://11642079813"] = "🌗 Last Quarter",
-            ["rbxassetid://11642080368"] = "🌘 Waning Crescent",
-        }
-        phase = moonMap[id] or phase
-        
-        return phase, id
-    end
-    return "Sky Not Loaded", nil
+    local timeOfDay = Lighting.TimeOfDay  -- مثلاً "20:30:00"
+    local hours = tonumber(timeOfDay:match("^(%d+):"))
+    if not hours then return "Unknown" end
+
+    -- چرخه ماه: هر 3 ساعت یک فاز (8 فاز در 24 ساعت)
+    local phaseIndex = math.floor(hours / 3) % 8
+    local phases = {
+        [0] = "🌑 New Moon",
+        [1] = "🌒 Waxing Crescent",
+        [2] = "🌓 First Quarter",
+        [3] = "🌔 Waxing Gibbous",
+        [4] = "🌕 Full Moon",
+        [5] = "🌖 Waning Gibbous",
+        [6] = "🌗 Last Quarter",
+        [7] = "🌘 Waning Crescent"
+    }
+    return phases[phaseIndex] or "Unknown"
 end
 
 -- hop به سرور جدید
@@ -52,45 +50,40 @@ local function hopToNewServer()
     local currentJobId = game.JobId
     local url = "https://games.roblox.com/v1/games/" .. placeId .. "/servers/Public?sortOrder=Asc&limit=100"
     local success, response = pcall(HttpService.GetAsync, HttpService, url)
-    if success then
-        local data = HttpService:JSONDecode(response)
-        local servers = data.data or {}
-        for _, server in ipairs(servers) do
-            if server.id ~= currentJobId and server.playing > 0 and server.playing < server.maxPlayers * 0.8 then
-                pcall(TeleportService.TeleportToPlaceInstance, TeleportService, placeId, server.id, player)
-                print("Hop به: " .. server.id)
-                return true
-            end
+    if not success then return false end
+
+    local data = HttpService:JSONDecode(response)
+    for _, server in ipairs(data.data or {}) do
+        if server.id ~= currentJobId and server.playing > 0 and server.playing < server.maxPlayers then
+            pcall(TeleportService.TeleportToPlaceInstance, TeleportService, placeId, server.id, player)
+            return true
         end
     end
-    warn("سرور جدید پیدا نشد!")
     return false
 end
 
 -- حلقه اصلی
 spawn(function()
-    -- صبر تا لود Sky (حداکثر 60 ثانیه)
-    local startTime = tick()
-    repeat
-        wait(3)
-        print("انتظار برای Sky...")
-    until Lighting:FindFirstChildOfClass("Sky") or (tick() - startTime > 60)
-    
+    -- صبر تا وارد بازی بشی
+    repeat wait(2) until player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+    print("شخصیت لود شد. شروع چک ماه...")
+
     while true do
-        local phase, textureId = getMoonPhase()
+        local phase = getMoonPhase()
         local jobId = game.JobId
-        
-        -- ارسال **هر فاز** به تلگرام
-        sendToTelegram(phase, jobId, textureId)
-        
-        -- Highlight Full Moon
-        if string.find(phase:lower(), "full") then
-            print("🚨 FULL MOON پیدا شد! JobId: " .. jobId)
+        local timeStr = os.date("%Y-%m-%d %H:%M:%S")
+
+        -- ارسال هر فاز
+        sendToTelegram(phase, jobId, timeStr)
+
+        -- هشدار Full Moon
+        if phase:find("Full Moon") then
+            print("🚨 FULL MOON! JobId: " .. jobId)
         end
-        
-        wait(15)  -- هر 15 ثانیه
+
+        wait(15)
         hopToNewServer()
     end
 end)
 
-print("🚀 Moon Checker + Hopper شروع شد! همه فازها به تلگرام: " .. CHAT_ID)
+print("Moon Checker با TimeOfDay فعال شد! همه فازها ارسال می‌شن.")
