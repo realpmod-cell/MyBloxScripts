@@ -1,47 +1,102 @@
+-- خدمات
 local HttpService = game:GetService("HttpService")
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
 
+-- تنظیمات
 local BOT_TOKEN = "8269110400:AAHpabkt1P7O_BEh1Ku0mMjDjOwy03LIGAs"
-local CHAT_ID = "@testbloxscript"  -- تست با @ - اگه کار نکرد، عددی بذار
+local CHAT_ID = "@testbloxscript"  -- یا عددی مثل -1003421042506
+
+-- ساخت GUI برای نمایش لاگ
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "TelegramLogGUI"
+screenGui.Parent = player:WaitForChild("PlayerGui")
+
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 500, 0, 300)
+frame.Position = UDim2.new(0, 10, 0, 10)
+frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+frame.BorderSizePixel = 2
+frame.BorderColor3 = Color3.fromRGB(100, 100, 255)
+frame.Parent = screenGui
+
+local scrolling = Instance.new("ScrollingFrame")
+scrolling.Size = UDim2.new(1, -10, 1, -40)
+scrolling.Position = UDim2.new(0, 5, 0, 35)
+scrolling.BackgroundTransparency = 1
+scrolling.ScrollBarThickness = 8
+scrolling.Parent = frame
+
+local logLabel = Instance.new("TextLabel")
+logLabel.Size = UDim2.new(1, 0, 0, 1000)
+logLabel.Position = UDim2.new(0, 0, 0, 0)
+logLabel.BackgroundTransparency = 1
+logLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
+logLabel.Text = "لاگ‌ها در حال بارگذاری...\n"
+logLabel.TextScaled = false
+logLabel.Font = Enum.Font.Code
+logLabel.TextXAlignment = Enum.TextXAlignment.Left
+logLabel.TextYAlignment = Enum.TextYAlignment.Top
+logLabel.Parent = scrolling
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, 0, 0, 30)
+title.Text = "Telegram Test Log"
+title.TextColor3 = Color3.fromRGB(173, 216, 230)
+title.BackgroundTransparency = 1
+title.Font = Enum.Font.GothamBold
+title.Parent = frame
+
+-- تابع اضافه کردن لاگ (هم کنسول، هم GUI)
+local function addLog(text)
+    print(text)  -- Exploit Console
+    logLabel.Text = logLabel.Text .. text .. "\n"
+    scrolling.CanvasSize = UDim2.new(0, 0, 0, logLabel.TextBounds.Y)
+    scrolling.CanvasPosition = Vector2.new(0, scrolling.CanvasSize.Y.Offset)
+end
+
+-- شروع تست
+addLog("شروع تست تلگرام...")
+addLog("URL: https://api.telegram.org/bot" .. BOT_TOKEN .. "/sendMessage")
+addLog("CHAT_ID: " .. CHAT_ID)
 
 local jobId = game.JobId or "N/A"
-local url = "https://api.telegram.org/bot" .. BOT_TOKEN .. "/sendMessage"
 local data = {
     chat_id = CHAT_ID,
-    text = "🧪 **TEST از Roblox!**\nJobId: `" .. jobId .. "`\nزمان: " .. os.date("%H:%M:%S"),
+    text = "TEST از GUI!\nJobId: `" .. jobId .. "`\nزمان: " .. os.date("%H:%M:%S"),
     parse_mode = "Markdown"
 }
 
-print("🔍 LOG 1: URL = " .. url)
-print("🔍 LOG 2: CHAT_ID = " .. CHAT_ID)
-print("🔍 LOG 3: JSON Data = " .. HttpService:JSONEncode(data))
+addLog("JSON Data: " .. HttpService:JSONEncode(data))
 
 local success, response = pcall(function()
-    return HttpService:PostAsync(url, HttpService:JSONEncode(data), Enum.HttpContentType.ApplicationJson)
+    return HttpService:PostAsync(
+        "https://api.telegram.org/bot" .. BOT_TOKEN .. "/sendMessage",
+        HttpService:JSONEncode(data),
+        Enum.HttpContentType.ApplicationJson
+    )
 end)
 
-print("🔍 LOG 4: pcall success = " .. tostring(success))
+addLog("pcall success: " .. tostring(success))
 
 if success then
-    print("🔍 LOG 5: Response Raw = " .. response)
+    addLog("Response Raw: " .. response)
     
-    local decodeSuccess, decoded = pcall(function()
-        return HttpService:JSONDecode(response)
-    end)
-    
-    if decodeSuccess then
-        print("🔍 LOG 6: Decoded = " .. HttpService:JSONEncode(decoded))
-        print("🔍 LOG 7: ok = " .. tostring(decoded.ok))
+    local decodeOk, decoded = pcall(HttpService.JSONDecode, HttpService, response)
+    if decodeOk then
+        addLog("ok: " .. tostring(decoded.ok))
         if decoded.ok then
-            print("✅ **TEST موفقیت‌آمیز!** پیام ارسال شد.")
+            addLog("موفقیت! پیام ارسال شد.")
         else
-            print("❌ Telegram Error:")
-            print("   - description: " .. (decoded.description or "N/A"))
-            print("   - error_code: " .. (decoded.error_code or "N/A"))
-            print("   - parameters: " .. (HttpService:JSONEncode(decoded.parameters or {}) or "N/A"))
+            addLog("خطای تلگرام:")
+            addLog("  description: " .. (decoded.description or "N/A"))
+            addLog("  error_code: " .. (decoded.error_code or "N/A"))
         end
     else
-        print("❌ JSON Decode Error: " .. tostring(decoded))
+        addLog("خطا در JSON Decode: " .. tostring(decoded))
     end
 else
-    print("❌ pcall Error: " .. tostring(response))
+    addLog("خطای HTTP: " .. tostring(response))
 end
+
+addLog("تست تمام شد. GUI رو ببند یا F9 رو چک کن.")
