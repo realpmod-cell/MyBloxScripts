@@ -1,144 +1,78 @@
--- Auto Farm Blox Fruits GUI (Based on Redz Hub Deobf)
--- By Grok (2025) - Simple & Keyless
-
-local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/shlexware/Orion/main/source')))()
-
-local Window = OrionLib:MakeWindow({
-    Name = "Auto Farm Blox Fruits",
-    HidePremium = false,
-    SaveConfig = true,
-    ConfigFolder = "AutoFarmBF"
-})
-
-local Tab = Window:MakeTab({
-    Name = "Farm",
-    Icon = "rbxassetid://4483345998",
-    PremiumOnly = false
-})
-
-local AutoFarmToggle = Tab:AddToggle({
-    Name = "Auto Farm Level (Quests & Mobs)",
-    Default = false,
-    Callback = function(Value)
-        _G.AutoFarm = Value
-        if Value then
-            spawn(function()
-                autoFarmLoop()
-            end)
-        end
-    end    
-})
-
-local NoClipToggle = Tab:AddToggle({
-    Name = "No-Clip (Walk Through Walls)",
-    Default = false,
-    Callback = function(Value)
-        _G.NoClip = Value
-        spawn(function()
-            noClipLoop()
-        end)
-    end    
-})
-
--- Main Start Button (وسط GUI)
-local StartButton = Tab:AddButton({
-    Name = "🚀 START AUTO FARM",
-    Callback = function()
-        _G.AutoFarm = true
-        OrionLib:MakeNotification({
-            Name = "Auto Farm Started!",
-            Content = "Farming quests & mobs in Blox Fruits. Stop anytime.",
-            Image = "rbxassetid://4483345998",
-            Time = 3
-        })
-        spawn(function()
-            autoFarmLoop()
-        end)
-    end
-})
-
-local StopButton = Tab:AddButton({
-    Name = "⏹️ STOP AUTO FARM",
-    Callback = function()
-        _G.AutoFarm = false
-        OrionLib:MakeNotification({
-            Name = "Auto Farm Stopped!",
-            Content = "Farm paused. Enjoy!",
-            Image = "rbxassetid://4483345998",
-            Time = 3
-        })
-    end
-})
-
--- Auto Farm Logic (Deobf-inspired from Redz Hub)
 local Players = game:GetService("Players")
+local TeleportService = game:GetService("TeleportService")
 local player = Players.LocalPlayer
-local TweenService = game:GetService("TweenService")
-local RunService = game:GetService("RunService")
+local placeId = 2753915549  -- PlaceId برای Blox Fruits
 
--- Quest Positions (Sea 1 Example - Expand for full seas)
-local Quests = {
-    Starter = CFrame.new(-324.48980712890625, 73.91703033447266, 268.2342529296875),  -- Bandit Quest
-    Marine = CFrame.new(44.60595703125, 7.8696441650390625, 45.0517578125)  -- Marine Fortress
-}
+-- ساخت GUI
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "ServerJoinerGUI"
+screenGui.Parent = player:WaitForChild("PlayerGui")
 
-function teleportTo(pos)
-    if _G.MetodeTeleport == "Tween" then
-        local tween = TweenService:Create(player.Character.HumanoidRootPart, TweenInfo.new(1), {CFrame = pos})
-        tween:Play()
-        tween.Completed:Wait()
+local frame = Instance.new("Frame")
+frame.Parent = screenGui
+frame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+frame.BorderSizePixel = 0
+frame.Position = UDim2.new(0.5, -150, 0.5, -50)
+frame.Size = UDim2.new(0, 300, 0, 100)
+
+local title = Instance.new("TextLabel")
+title.Parent = frame
+title.BackgroundTransparency = 1
+title.Position = UDim2.new(0, 0, 0, 0)
+title.Size = UDim2.new(1, 0, 0, 20)
+title.Text = "Server Joiner"
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.TextScaled = true
+title.Font = Enum.Font.SourceSansBold
+
+local textBox = Instance.new("TextBox")
+textBox.Parent = frame
+textBox.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+textBox.BorderSizePixel = 0
+textBox.Position = UDim2.new(0, 10, 0, 25)
+textBox.Size = UDim2.new(1, -20, 0, 30)
+textBox.PlaceholderText = "کد سرور (JobId) را وارد کنید"
+textBox.Text = ""
+textBox.TextColor3 = Color3.fromRGB(0, 0, 0)
+textBox.TextScaled = true
+textBox.Font = Enum.Font.SourceSans
+
+local button = Instance.new("TextButton")
+button.Parent = frame
+button.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
+button.BorderSizePixel = 0
+button.Position = UDim2.new(0, 10, 0, 60)
+button.Size = UDim2.new(1, -20, 0, 30)
+button.Text = "Join"
+button.TextColor3 = Color3.fromRGB(255, 255, 255)
+button.TextScaled = true
+button.Font = Enum.Font.SourceSansBold
+
+-- عملکرد دکمه
+button.MouseButton1Click:Connect(function()
+    local jobId = textBox.Text
+    if jobId ~= "" then
+        pcall(function()
+            TeleportService:TeleportToPlaceInstance(placeId, jobId, player)
+        end)
+        print("تلاش برای جوین به سرور: " .. jobId)
     else
-        player.Character.HumanoidRootPart.CFrame = pos
+        warn("کد سرور خالی است!")
     end
-end
+end)
 
-function getNearestQuest()
-    -- Simple logic: Teleport to first quest
-    return Quests.Starter  -- Add detection for current sea/level
-end
+-- دکمه بستن (اختیاری)
+local closeButton = Instance.new("TextButton")
+closeButton.Parent = frame
+closeButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+closeButton.BorderSizePixel = 0
+closeButton.Position = UDim2.new(1, -25, 0, 0)
+closeButton.Size = UDim2.new(0, 20, 0, 20)
+closeButton.Text = "X"
+closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeButton.TextScaled = true
+closeButton.Font = Enum.Font.SourceSansBold
 
-function acceptQuest()
-    -- Fire proximity prompt for quest NPC
-    local npc = workspace.NPCs:FindFirstChild("BanditQuestGiver")  -- Adjust name
-    if npc then
-        fireproximityprompt(npc.ProximityPrompt)
-    end
-end
-
-function killMobs()
-    for _, mob in pairs(workspace.Enemies:GetChildren()) do
-        if mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 then
-            -- Fast attack
-            player.Character.HumanoidRootPart.CFrame = mob.HumanoidRootPart.CFrame * CFrame.new(0, 0, -5)
-            game:GetService("VirtualUser"):ClickButton1(Vector2.new())
-            wait(0.1)
-        end
-    end
-end
-
-function autoFarmLoop()
-    while _G.AutoFarm do
-        local questPos = getNearestQuest()
-        teleportTo(questPos)
-        acceptQuest()
-        killMobs()  -- Kill 5-10 mobs per loop
-        wait(5)     -- Adjust speed
-        -- Collect fruits/beli if near
-        if game.Workspace:FindFirstChild("DevilFruit") then
-            teleportTo(game.Workspace.DevilFruit.Handle.CFrame)
-        end
-    end
-end
-
-function noClipLoop()
-    while _G.NoClip do
-        for _, part in pairs(player.Character:GetDescendants()) do
-            if part:IsA("BasePart") then
-                part.CanCollide = false
-            end
-        end
-        RunService.Heartbeat:Wait()
-    end
-end
-
-OrionLib:Init()
+closeButton.MouseButton1Click:Connect(function()
+    screenGui:Destroy()
+end)
