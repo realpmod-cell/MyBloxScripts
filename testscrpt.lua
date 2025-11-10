@@ -3,9 +3,9 @@ local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 
--- تنظیمات تلگرام (ID درست!)
+-- تنظیمات تلگرام (ID عددی!)
 local BOT_TOKEN = "8269110400:AAHpabkt1P7O_BEh1Ku0mMjDjOwy03LIGAs"
-local CHAT_ID = "-1003421042506"  -- کانال "test"
+local CHAT_ID = "-1003421042506"  -- کانال test
 
 -- ساخت GUI
 local screenGui = Instance.new("ScreenGui")
@@ -25,7 +25,7 @@ corner.Parent = frame
 
 local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1, 0, 0, 40)
-title.Text = "تست تلگرام + لاگ"
+title.Text = "تست تلگرام"
 title.TextColor3 = Color3.fromRGB(173, 216, 230)
 title.BackgroundTransparency = 1
 title.Font = Enum.Font.GothamBold
@@ -46,7 +46,7 @@ local logText = Instance.new("TextLabel")
 logText.Size = UDim2.new(1, -10, 0, 1000)
 logText.Position = UDim2.new(0, 5, 0, 0)
 logText.BackgroundTransparency = 1
-logText.Text = "لاگ آماده است...\n"
+logText.Text = "لاگ آماده...\n"
 logText.TextColor3 = Color3.fromRGB(0, 255, 150)
 logText.Font = Enum.Font.Code
 logText.TextXAlignment = Enum.TextXAlignment.Left
@@ -54,7 +54,7 @@ logText.TextYAlignment = Enum.TextYAlignment.Top
 logText.TextScaled = false
 logText.Parent = scrolling
 
--- تابع اضافه کردن لاگ
+-- تابع لاگ
 local function addLog(text)
     print(text)
     logText.Text = logText.Text .. text .. "\n"
@@ -74,36 +74,31 @@ local function createButton(text, color, callback)
     btn.Font = Enum.Font.GothamBold
     btn.TextScaled = true
     btn.Parent = frame
-    
-    local btnCorner = Instance.new("UICorner")
-    btnCorner.CornerRadius = UDim.new(0, 8)
-    btnCorner.Parent = btn
-    
+    local c = Instance.new("UICorner", btn)
+    c.CornerRadius = UDim.new(0, 8)
     btn.MouseButton1Click:Connect(callback)
     btnY = btnY + 1
 end
 
--- دکمه: تست تلگرام
+-- دکمه تست
 createButton("تست تلگرام", Color3.fromRGB(0, 170, 255), function()
-    addLog("--- شروع تست ---")
+    addLog("--- تست شروع شد ---")
     addLog("کانال: test")
-    addLog("ID: " .. CHAT_ID)
+    addLog("ID: " .. CHAT_ID)  -- باید عددی باشه!
     
     local data = {
         chat_id = CHAT_ID,
-        text = "تست موفق!\nJobId: `" .. (game.JobId or "N/A") .. "`\nزمان: " .. os.date("%H:%M:%S"),
+        text = "تست موفق!\nJobId: `" .. game.JobId .. "`\nزمان: " .. os.date("%H:%M:%S"),
         parse_mode = "Markdown"
     }
     
     addLog("ارسال: " .. HttpService:JSONEncode(data))
     
-    local success, resp = pcall(function()
-        return HttpService:PostAsync(
-            "https://api.telegram.org/bot" .. BOT_TOKEN .. "/sendMessage",
-            HttpService:JSONEncode(data),
-            Enum.HttpContentType.ApplicationJson
-        )
-    end)
+    local success, resp = pcall(HttpService.PostAsync, HttpService,
+        "https://api.telegram.org/bot" .. BOT_TOKEN .. "/sendMessage",
+        HttpService:JSONEncode(data),
+        Enum.HttpContentType.ApplicationJson
+    )
     
     if success then
         addLog("پاسخ: " .. resp)
@@ -118,24 +113,23 @@ createButton("تست تلگرام", Color3.fromRGB(0, 170, 255), function()
     end
 end)
 
--- دکمه: کپی لاگ
+-- دکمه کپی
 createButton("کپی لاگ", Color3.fromRGB(0, 200, 100), function()
     setclipboard(logText.Text)
     addLog("لاگ کپی شد!")
 end)
 
--- دکمه: پاک کردن
+-- دکمه پاک کردن
 createButton("پاک کن", Color3.fromRGB(220, 100, 50), function()
     logText.Text = "لاگ پاک شد.\n"
-    addLog("لاگ پاک شد.")
 end)
 
--- دکمه: بستن
+-- دکمه بستن
 createButton("بستن", Color3.fromRGB(220, 50, 50), function()
     screenGui:Destroy()
 end)
 
 -- شروع
 addLog("GUI لود شد!")
-addLog("ID درست: -1003421042506")
-addLog("دکمه 'تست تلگرام' رو بزن → پیام در کانال test میاد!")
+addLog("ID کانال: -1003421042506")
+addLog("دکمه 'تست تلگرام' رو بزن!")
