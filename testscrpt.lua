@@ -5,9 +5,9 @@ local Lighting = game:GetService("Lighting")
 local player = Players.LocalPlayer
 local placeId = 2753915549
 
--- تنظیمات تلگرام
+-- تنظیمات تلگرام (آپدیت شد!)
 local BOT_TOKEN = "8269110400:AAHpabkt1P7O_BEh1Ku0mMjDjOwy03LIGAs"
-local CHAT_ID = "@testbloxscript"  -- عوض کن!
+local CHAT_ID = "@testbloxscript"  -- کانال تست
 
 -- ارسال به تلگرام
 local function sendToTelegram(phase, jobId, timeStr)
@@ -21,16 +21,14 @@ local function sendToTelegram(phase, jobId, timeStr)
             disable_web_page_preview = true
         }), Enum.HttpContentType.ApplicationJson)
     end)
-    print("ارسال شد: " .. phase)
 end
 
 -- محاسبه فاز ماه از TimeOfDay
 local function getMoonPhase()
-    local timeOfDay = Lighting.TimeOfDay  -- مثلاً "20:30:00"
-    local hours = tonumber(timeOfDay:match("^(%d+):"))
+    local timeOfDay = Lighting.TimeOfDay  -- "12:34:56"
+    local hours = tonumber(timeOfDay:match("^(%d+)"))
     if not hours then return "Unknown" end
 
-    -- چرخه ماه: هر 3 ساعت یک فاز (8 فاز در 24 ساعت)
     local phaseIndex = math.floor(hours / 3) % 8
     local phases = {
         [0] = "🌑 New Moon",
@@ -62,10 +60,14 @@ local function hopToNewServer()
     return false
 end
 
--- حلقه اصلی
+-- حلقه اصلی (بدون خطای Humanoid!)
 spawn(function()
-    -- صبر تا وارد بازی بشی
-    repeat wait(2) until player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+    -- صبر تا لود شدن HumanoidRootPart (همیشه هست)
+    repeat
+        wait(1)
+        print("در انتظار لود شدن شخصیت...")
+    until player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+
     print("شخصیت لود شد. شروع چک ماه...")
 
     while true do
@@ -76,9 +78,8 @@ spawn(function()
         -- ارسال هر فاز
         sendToTelegram(phase, jobId, timeStr)
 
-        -- هشدار Full Moon
         if phase:find("Full Moon") then
-            print("🚨 FULL MOON! JobId: " .. jobId)
+            print("FULL MOON! JobId: " .. jobId)
         end
 
         wait(15)
@@ -86,4 +87,4 @@ spawn(function()
     end
 end)
 
-print("Moon Checker با TimeOfDay فعال شد! همه فازها ارسال می‌شن.")
+print("Moon Checker + Hopper با @testbloxscript فعال شد!")
